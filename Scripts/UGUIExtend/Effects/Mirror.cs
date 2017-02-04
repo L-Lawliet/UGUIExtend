@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -16,30 +17,85 @@ using UnityEngine.UI;
 namespace Waiting.UGUI.Effects
 {
     [AddComponentMenu("UI/Effects/Mirror", 20)]
-    [RequireComponent(typeof(Image))]
+    [RequireComponent(typeof(Graphic))]
     public class Mirror : BaseMeshEffect
     {
         public enum MirrorType
         {
-            Horizontal,
+            /// <summary>
+            /// 水平
+            /// </summary>
+            Horizontal, 
+
+            /// <summary>
+            /// 垂直
+            /// </summary>
             Vertical,
+
+            /// <summary>
+            /// 四分之一
+            /// 相当于水平，然后再垂直
+            /// </summary>
             Quarter,
         }
 
+        /// <summary>
+        /// 镜像类型
+        /// </summary>
         [SerializeField]
-        private MirrorType m_Mirror = MirrorType.Horizontal;
+        private MirrorType m_MirrorType = MirrorType.Horizontal;
 
-        public MirrorType mirror
+        public MirrorType mirrorType
         {
-            get { return m_Mirror; }
+            get { return m_MirrorType; }
             set
             {
-                if (m_Mirror != value)
+                if (m_MirrorType != value)
                 {
-                    m_Mirror = value;
+                    m_MirrorType = value;
                     if(graphic != null){
                         graphic.SetVerticesDirty();
                     }
+                }
+            }
+        }
+
+        [NonSerialized]
+        private RectTransform m_RectTransform;
+
+        public RectTransform rectTransform
+        {
+            get { return m_RectTransform ?? (m_RectTransform = GetComponent<RectTransform>()); }
+        }
+
+        /// <summary>
+        /// 设置原始尺寸
+        /// </summary>
+        public void SetNativeSize()
+        {
+            if (graphic != null && graphic is Image)
+            {
+                Sprite overrideSprite = (graphic as Image).overrideSprite;
+
+                if(overrideSprite != null){
+                    float w = overrideSprite.rect.width / (graphic as Image).pixelsPerUnit;
+                    float h = overrideSprite.rect.height / (graphic as Image).pixelsPerUnit;
+                    rectTransform.anchorMax = rectTransform.anchorMin;
+
+                    switch (m_MirrorType)
+                    {
+                        case MirrorType.Horizontal:
+                            rectTransform.sizeDelta = new Vector2(w * 2, h);
+                            break;
+                        case MirrorType.Vertical:
+                            rectTransform.sizeDelta = new Vector2(w, h * 2);
+                            break;
+                        case MirrorType.Quarter:
+                            rectTransform.sizeDelta = new Vector2(w * 2, h * 2);
+                            break;
+                    }
+
+                    graphic.SetVerticesDirty();
                 }
             }
         }
@@ -56,36 +112,66 @@ namespace Waiting.UGUI.Effects
 
             int count = output.Count;
 
-            var neededCapacity = count * 2;
-            if (output.Capacity < neededCapacity)
+            if (graphic is Image)
             {
-                output.Capacity = neededCapacity;
-            }
+                Image.Type type = (graphic as Image).type;
 
-            switch (m_Mirror)
+                switch (type)
+                {
+                    case Image.Type.Simple:
+                        DrawSimple(output, count);
+                        break;
+                    case Image.Type.Sliced:
+
+                        break;
+                    case Image.Type.Tiled:
+
+                        break;
+                    case Image.Type.Filled:
+
+                        break;
+                }
+            }
+            else
             {
-                case MirrorType.Horizontal:
-                    DrawHorizontal(output, count);
-                    break;
-                case MirrorType.Vertical:
-                    DrawVertical(output, count);
-                    break;
-                case MirrorType.Quarter:
-                    DrawQuarter(output, count);
-                    break;
+                DrawSimple(output, count);
             }
 
             vh.Clear();
             vh.AddUIVertexTriangleStream(output);
         }
 
-        protected void DrawHorizontal(List<UIVertex> verts, int count)
+        /// <summary>
+        /// 绘制简单
+        /// </summary>
+        /// <param name="output"></param>
+        /// <param name="count"></param>
+        protected void DrawSimple(List<UIVertex> output, int count)
+        {
+            switch (m_MirrorType)
+            {
+                case MirrorType.Horizontal:
+                    DrawSimpleHorizontal(output, count);
+                    break;
+                case MirrorType.Vertical:
+                    DrawSimpleVertical(output, count);
+                    break;
+                case MirrorType.Quarter:
+                    DrawSimpleQuarter(output, count);
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// 绘制简单的水平镜像
+        /// </summary>
+        /// <param name="verts"></param>
+        /// <param name="count"></param>
+        protected void DrawSimpleHorizontal(List<UIVertex> verts, int count)
         {
             Rect rect = graphic.GetPixelAdjustedRect();
 
-            float halfWidth = rect.width * 0.5f;
-
-            float centerX = rect.x + halfWidth;
+            UIVertex[] addVerts = new UIVertex[count];
 
             for (int i = 0; i < count; i++)
             {
@@ -94,30 +180,33 @@ namespace Waiting.UGUI.Effects
                 //原来偏移
                 Vector3 position = vertex.position;
 
-                position.x = (position.x - halfWidth) * 0.5f;
-
-                //position.y = position.y - (i / 3) * 100.0f;
+                position.x = (position.x + rect.x) * 0.5f;
 
                 vertex.position = position;
 
                 verts[i] = vertex;
 
                 //水平镜像
-                position.x = centerX * 2 - position.x;
+                position.x = rect.center.x * 2 - position.x;
 
                 vertex.position = position;
 
-                verts.Add(vertex);
+                addVerts[i] = vertex;
             }
+
+            verts.AddRange(addVerts);
         }
 
-        protected void DrawVertical(List<UIVertex> verts, int count)
+        /// <summary>
+        /// 绘制简单的垂直镜像
+        /// </summary>
+        /// <param name="verts"></param>
+        /// <param name="count"></param>
+        protected void DrawSimpleVertical(List<UIVertex> verts, int count)
         {
             Rect rect = graphic.GetPixelAdjustedRect();
 
-            float halfHeight = rect.height * 0.5f;
-
-            float centerY = rect.y + halfHeight;
+            UIVertex[] addVerts = new UIVertex[count];
 
             for (int i = 0; i < count; i++)
             {
@@ -126,24 +215,72 @@ namespace Waiting.UGUI.Effects
                 //原来偏移
                 Vector3 position = vertex.position;
 
-                position.y = (position.y - halfHeight) * 0.5f;
+                position.y = (position.y + rect.yMax) * 0.5f;
 
                 vertex.position = position;
 
                 verts[i] = vertex;
 
                 //垂直镜像
-                position.y = centerY * 2 - position.y;
+                position.y = rect.center.y * 2 - position.y;
 
                 vertex.position = position;
 
-                verts.Add(vertex);
+                addVerts[i] = vertex;
             }
+
+            verts.AddRange(addVerts);
         }
 
-        protected void DrawQuarter(List<UIVertex> verts, int count)
+        /// <summary>
+        /// 绘制简单的四分之一镜像
+        /// </summary>
+        /// <param name="verts"></param>
+        /// <param name="count"></param>
+        protected void DrawSimpleQuarter(List<UIVertex> verts, int count)
         {
-            
+            Rect rect = graphic.GetPixelAdjustedRect();
+
+            UIVertex[] addVerts = new UIVertex[count * 3];
+
+            for (int i = 0; i < count; i++)
+            {
+                UIVertex vertex = verts[i];
+
+                //原来偏移 第二象限
+                Vector3 position = vertex.position;
+
+                position.x = (position.x + rect.x) * 0.5f;
+
+                position.y = (position.y + rect.yMax) * 0.5f;
+
+                vertex.position = position;
+
+                verts[i] = vertex;
+
+                //第三象限
+                position.y = rect.center.y * 2 - position.y;
+
+                vertex.position = position;
+
+                addVerts[i] = vertex;
+
+                //第四象限
+                position.x = rect.center.x * 2 - position.x;
+
+                vertex.position = position;
+
+                addVerts[i + count] = vertex;
+
+                //第一象限
+                position.y = rect.center.y * 2 - position.y;
+
+                vertex.position = position;
+
+                addVerts[i + count * 2] = vertex;
+            }
+
+            verts.AddRange(addVerts);
         }
 
     }
