@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Sprites;
 using UnityEngine.UI;
 
 /// <summary>
@@ -122,7 +123,7 @@ namespace Waiting.UGUI.Effects
                         DrawSimple(output, count);
                         break;
                     case Image.Type.Sliced:
-
+                        
                         break;
                     case Image.Type.Tiled:
 
@@ -142,7 +143,7 @@ namespace Waiting.UGUI.Effects
         }
 
         /// <summary>
-        /// 绘制简单
+        /// 绘制简单版
         /// </summary>
         /// <param name="output"></param>
         /// <param name="count"></param>
@@ -215,7 +216,7 @@ namespace Waiting.UGUI.Effects
                 //原来偏移
                 Vector3 position = vertex.position;
 
-                position.y = (position.y + rect.yMax) * 0.5f;
+                position.y = (position.y + rect.y) * 0.5f;
 
                 vertex.position = position;
 
@@ -247,32 +248,32 @@ namespace Waiting.UGUI.Effects
             {
                 UIVertex vertex = verts[i];
 
-                //原来偏移 第二象限
+                //原来偏移 第三象限
                 Vector3 position = vertex.position;
 
                 position.x = (position.x + rect.x) * 0.5f;
 
-                position.y = (position.y + rect.yMax) * 0.5f;
+                position.y = (position.y + rect.y) * 0.5f;
 
                 vertex.position = position;
 
                 verts[i] = vertex;
 
-                //第三象限
+                //第二象限
                 position.y = rect.center.y * 2 - position.y;
 
                 vertex.position = position;
 
                 addVerts[i] = vertex;
 
-                //第四象限
+                //第一象限
                 position.x = rect.center.x * 2 - position.x;
 
                 vertex.position = position;
 
                 addVerts[i + count] = vertex;
 
-                //第一象限
+                //第四象限
                 position.y = rect.center.y * 2 - position.y;
 
                 vertex.position = position;
@@ -282,6 +283,5 @@ namespace Waiting.UGUI.Effects
 
             verts.AddRange(addVerts);
         }
-
     }
 }
