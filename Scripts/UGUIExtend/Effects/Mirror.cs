@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Sprites;
 using UnityEngine.UI;
+using Waiting.UGUI.Collections;
 
 /// <summary>
 ///
@@ -106,9 +107,9 @@ namespace Waiting.UGUI.Effects
             if (!IsActive())
             {
                 return;
-            } 
+            }
 
-            var output = new List<UIVertex>();
+            var output = ListPool<UIVertex>.Get();
             vh.GetUIVertexStream(output);
 
             int count = output.Count;
@@ -140,6 +141,8 @@ namespace Waiting.UGUI.Effects
 
             vh.Clear();
             vh.AddUIVertexTriangleStream(output);
+
+            ListPool<UIVertex>.Recycle(output);
         }
 
         /// <summary>
@@ -149,139 +152,82 @@ namespace Waiting.UGUI.Effects
         /// <param name="count"></param>
         protected void DrawSimple(List<UIVertex> output, int count)
         {
+            Rect rect = graphic.GetPixelAdjustedRect();
+
+            SimpleScale(rect, output, count);
+
             switch (m_MirrorType)
             {
                 case MirrorType.Horizontal:
-                    DrawSimpleHorizontal(output, count);
+                    ExtendCapacity(output, count);
+                    MirrorVerts(rect, output, count, true);
                     break;
                 case MirrorType.Vertical:
-                    DrawSimpleVertical(output, count);
+                    ExtendCapacity(output, count);
+                    MirrorVerts(rect, output, count, false);
                     break;
                 case MirrorType.Quarter:
-                    DrawSimpleQuarter(output, count);
+                    ExtendCapacity(output, count * 3);
+                    MirrorVerts(rect, output, count, true);
+                    MirrorVerts(rect, output, count * 2, false);
                     break;
             }
         }
 
-        /// <summary>
-        /// 绘制简单的水平镜像
-        /// </summary>
-        /// <param name="verts"></param>
-        /// <param name="count"></param>
-        protected void DrawSimpleHorizontal(List<UIVertex> verts, int count)
+        protected void ExtendCapacity(List<UIVertex> verts, int addCount)
         {
-            Rect rect = graphic.GetPixelAdjustedRect();
-
-            UIVertex[] addVerts = new UIVertex[count];
-
-            for (int i = 0; i < count; i++)
+            var neededCapacity = verts.Count + addCount;
+            if (verts.Capacity < neededCapacity)
             {
-                UIVertex vertex = verts[i];
-
-                //原来偏移
-                Vector3 position = vertex.position;
-
-                position.x = (position.x + rect.x) * 0.5f;
-
-                vertex.position = position;
-
-                verts[i] = vertex;
-
-                //水平镜像
-                position.x = rect.center.x * 2 - position.x;
-
-                vertex.position = position;
-
-                addVerts[i] = vertex;
+                verts.Capacity = neededCapacity;
             }
-
-            verts.AddRange(addVerts);
         }
 
-        /// <summary>
-        /// 绘制简单的垂直镜像
-        /// </summary>
-        /// <param name="verts"></param>
-        /// <param name="count"></param>
-        protected void DrawSimpleVertical(List<UIVertex> verts, int count)
+        protected void SimpleScale(Rect rect, List<UIVertex> verts, int count)
         {
-            Rect rect = graphic.GetPixelAdjustedRect();
-
-            UIVertex[] addVerts = new UIVertex[count];
-
             for (int i = 0; i < count; i++)
             {
                 UIVertex vertex = verts[i];
 
-                //原来偏移
                 Vector3 position = vertex.position;
 
-                position.y = (position.y + rect.y) * 0.5f;
+                if (m_MirrorType == MirrorType.Horizontal || m_MirrorType == MirrorType.Quarter)
+                {
+                    position.x = (position.x + rect.x) * 0.5f;
+                }
+
+                if (m_MirrorType == MirrorType.Vertical || m_MirrorType == MirrorType.Quarter)
+                {
+                    position.y = (position.y + rect.y) * 0.5f;
+                }
 
                 vertex.position = position;
 
                 verts[i] = vertex;
-
-                //垂直镜像
-                position.y = rect.center.y * 2 - position.y;
-
-                vertex.position = position;
-
-                addVerts[i] = vertex;
             }
-
-            verts.AddRange(addVerts);
         }
 
-        /// <summary>
-        /// 绘制简单的四分之一镜像
-        /// </summary>
-        /// <param name="verts"></param>
-        /// <param name="count"></param>
-        protected void DrawSimpleQuarter(List<UIVertex> verts, int count)
+        protected void MirrorVerts(Rect rect, List<UIVertex> verts, int count, bool isHorizontal = true)
         {
-            Rect rect = graphic.GetPixelAdjustedRect();
-
-            UIVertex[] addVerts = new UIVertex[count * 3];
-
             for (int i = 0; i < count; i++)
             {
                 UIVertex vertex = verts[i];
 
-                //原来偏移 第三象限
                 Vector3 position = vertex.position;
 
-                position.x = (position.x + rect.x) * 0.5f;
-
-                position.y = (position.y + rect.y) * 0.5f;
-
-                vertex.position = position;
-
-                verts[i] = vertex;
-
-                //第二象限
-                position.y = rect.center.y * 2 - position.y;
+                if (isHorizontal)
+                {
+                    position.x = rect.center.x * 2 - position.x;
+                }
+                else
+                {
+                    position.y = rect.center.y * 2 - position.y;
+                }
 
                 vertex.position = position;
 
-                addVerts[i] = vertex;
-
-                //第一象限
-                position.x = rect.center.x * 2 - position.x;
-
-                vertex.position = position;
-
-                addVerts[i + count] = vertex;
-
-                //第四象限
-                position.y = rect.center.y * 2 - position.y;
-
-                vertex.position = position;
-
-                addVerts[i + count * 2] = vertex;
+                verts.Add(vertex);
             }
-
-            verts.AddRange(addVerts);
         }
     }
 }
