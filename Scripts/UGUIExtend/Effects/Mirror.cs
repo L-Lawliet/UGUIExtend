@@ -124,10 +124,10 @@ namespace Waiting.UGUI.Effects
                         DrawSimple(output, count);
                         break;
                     case Image.Type.Sliced:
-                        
+                        DrawSliced(output, count);
                         break;
                     case Image.Type.Tiled:
-
+                        
                         break;
                     case Image.Type.Filled:
 
@@ -146,7 +146,7 @@ namespace Waiting.UGUI.Effects
         }
 
         /// <summary>
-        /// 绘制简单版
+        /// 绘制Simple版
         /// </summary>
         /// <param name="output"></param>
         /// <param name="count"></param>
@@ -174,6 +174,47 @@ namespace Waiting.UGUI.Effects
             }
         }
 
+        /// <summary>
+        /// 绘制Sliced版
+        /// </summary>
+        /// <param name="output"></param>
+        /// <param name="count"></param>
+        protected void DrawSliced(List<UIVertex> output, int count)
+        {
+            if (!(graphic as Image).hasBorder)
+            {
+                DrawSimple(output, count);
+            }
+
+            Rect rect = graphic.GetPixelAdjustedRect();
+
+            SlicedScale(rect, output, count);
+
+            count = SliceExcludeVerts(output, count);
+
+            switch (m_MirrorType)
+            {
+                case MirrorType.Horizontal:
+                    ExtendCapacity(output, count);
+                    MirrorVerts(rect, output, count, true);
+                    break;
+                case MirrorType.Vertical:
+                    ExtendCapacity(output, count);
+                    MirrorVerts(rect, output, count, false);
+                    break;
+                case MirrorType.Quarter:
+                    ExtendCapacity(output, count * 3);
+                    MirrorVerts(rect, output, count, true);
+                    MirrorVerts(rect, output, count * 2, false);
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// 扩展容量
+        /// </summary>
+        /// <param name="verts"></param>
+        /// <param name="addCount"></param>
         protected void ExtendCapacity(List<UIVertex> verts, int addCount)
         {
             var neededCapacity = verts.Count + addCount;
@@ -183,6 +224,12 @@ namespace Waiting.UGUI.Effects
             }
         }
 
+        /// <summary>
+        /// Simple缩放位移顶点（减半）
+        /// </summary>
+        /// <param name="rect"></param>
+        /// <param name="verts"></param>
+        /// <param name="count"></param>
         protected void SimpleScale(Rect rect, List<UIVertex> verts, int count)
         {
             for (int i = 0; i < count; i++)
@@ -207,6 +254,63 @@ namespace Waiting.UGUI.Effects
             }
         }
 
+        /// <summary>
+        /// Sliced缩放位移顶点（减半）
+        /// </summary>
+        /// <param name="rect"></param>
+        /// <param name="verts"></param>
+        /// <param name="count"></param>
+        protected void SlicedScale(Rect rect, List<UIVertex> verts, int count)
+        {
+            Vector4 border = GetAdjustedBorders(rect);
+
+            float halfWidth = rect.width * 0.5f;
+
+            float halfHeight = rect.height * 0.5f;
+
+            for (int i = 0; i < count; i++)
+            {
+                UIVertex vertex = verts[i];
+
+                Vector3 position = vertex.position;
+
+                if (m_MirrorType == MirrorType.Horizontal || m_MirrorType == MirrorType.Quarter)
+                {
+                    if (halfWidth < border.x && position.x >= rect.center.x)
+                    {
+                        position.x = rect.center.x;
+                    }
+                    else if (position.x >= border.x)
+                    {
+                        position.x = (position.x + rect.x) * 0.5f;
+                    }
+                }
+
+                if (m_MirrorType == MirrorType.Vertical || m_MirrorType == MirrorType.Quarter)
+                {
+                    if (halfHeight < border.y && position.y >= rect.center.y)
+                    {
+                        position.y = rect.center.y;
+                    }
+                    else if (position.y >= border.y)
+                    {
+                        position.y = (position.y + rect.y) * 0.5f;
+                    }
+                }
+
+                vertex.position = position;
+
+                verts[i] = vertex;
+            }
+        }
+
+        /// <summary>
+        /// 镜像顶点
+        /// </summary>
+        /// <param name="rect"></param>
+        /// <param name="verts"></param>
+        /// <param name="count"></param>
+        /// <param name="isHorizontal"></param>
         protected void MirrorVerts(Rect rect, List<UIVertex> verts, int count, bool isHorizontal = true)
         {
             for (int i = 0; i < count; i++)
@@ -228,6 +332,71 @@ namespace Waiting.UGUI.Effects
 
                 verts.Add(vertex);
             }
+        }
+
+        /// <summary>
+        /// 清理掉不能成三角面的顶点
+        /// </summary>
+        /// <param name="verts"></param>
+        /// <param name="count"></param>
+        /// <returns></returns>
+        protected int SliceExcludeVerts(List<UIVertex> verts, int count)
+        {
+            int realCount = count;
+
+            int i = 0;
+
+            while (i < realCount)
+            {
+                UIVertex v1 = verts[i];
+                UIVertex v2 = verts[i + 1];
+                UIVertex v3 = verts[i + 2];
+
+                if (v1.position == v2.position || v2.position == v3.position || v3.position == v1.position)
+                {
+                    verts[i] = verts[realCount - 3];
+                    verts[i + 1] = verts[realCount - 2];
+                    verts[i + 2] = verts[realCount - 1];
+
+                    realCount -= 3;
+                    continue;
+                }
+
+                i += 3;
+            }
+
+            if (realCount < count)
+            {
+                verts.RemoveRange(realCount, count - realCount);
+            }
+
+            return realCount;
+        }
+
+        /// <summary>
+        /// 返回矫正过的范围
+        /// </summary>
+        /// <param name="rect"></param>
+        /// <returns></returns>
+        protected Vector4 GetAdjustedBorders(Rect rect)
+        {
+            Sprite overrideSprite = (graphic as Image).overrideSprite;
+
+            Vector4 border = overrideSprite.border;
+
+            border = border / (graphic as Image).pixelsPerUnit;
+
+            for (int axis = 0; axis <= 1; axis++)
+            {
+                float combinedBorders = border[axis] + border[axis + 2];
+                if (rect.size[axis] < combinedBorders && combinedBorders != 0)
+                {
+                    float borderScaleRatio = rect.size[axis] / combinedBorders;
+                    border[axis] *= borderScaleRatio;
+                    border[axis + 2] *= borderScaleRatio;
+                }
+            }
+            return border;
         }
     }
 }
