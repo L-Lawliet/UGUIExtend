@@ -130,7 +130,6 @@ namespace Waiting.UGUI.Effects
                         DrawTiled(output, count);
                         break;
                     case Image.Type.Filled:
-
                         break;
                 }
             }
@@ -217,8 +216,6 @@ namespace Waiting.UGUI.Effects
         /// <param name="count"></param>
         protected void DrawTiled(List<UIVertex> verts, int count)
         {
-            Rect rect = graphic.GetPixelAdjustedRect();
-
             Sprite overrideSprite = (graphic as Image).overrideSprite;
 
             if (overrideSprite == null)
@@ -226,13 +223,12 @@ namespace Waiting.UGUI.Effects
                 return;
             }
 
+            Rect rect = graphic.GetPixelAdjustedRect();
+
             //此处使用inner是因为Image绘制Tiled时，会把透明区域也绘制了。
+            
             Vector4 inner = DataUtility.GetInnerUV(overrideSprite);
-
-            float uLength = inner.z - inner.x;
-
-            float vLength = inner.w - inner.y;
-
+            
             float w = overrideSprite.rect.width / (graphic as Image).pixelsPerUnit;
             float h = overrideSprite.rect.height / (graphic as Image).pixelsPerUnit;
 
@@ -253,9 +249,9 @@ namespace Waiting.UGUI.Effects
                     //判断三个点的水平位置是否在偶数矩形内，如果是，则把UV坐标水平翻转
                     if (Mathf.FloorToInt((centerX - rect.xMin) / w) % 2 == 1)
                     {
-                        v1.uv0 = GetOverturnUV(v1.uv0, inner.x, uLength, true);
-                        v2.uv0 = GetOverturnUV(v2.uv0, inner.x, uLength, true);
-                        v3.uv0 = GetOverturnUV(v3.uv0, inner.x, uLength, true);
+                        v1.uv0 = GetOverturnUV(v1.uv0, inner.x, inner.z, true);
+                        v2.uv0 = GetOverturnUV(v2.uv0, inner.x, inner.z, true);
+                        v3.uv0 = GetOverturnUV(v3.uv0, inner.x, inner.z, true);
                     }
                 }
 
@@ -264,9 +260,9 @@ namespace Waiting.UGUI.Effects
                     //判断三个点的垂直位置是否在偶数矩形内，如果是，则把UV坐标垂直翻转
                     if (Mathf.FloorToInt((centerY - rect.yMin) / h) % 2 == 1)
                     {
-                        v1.uv0 = GetOverturnUV(v1.uv0, inner.y, vLength, false);
-                        v2.uv0 = GetOverturnUV(v2.uv0, inner.y, vLength, false);
-                        v3.uv0 = GetOverturnUV(v3.uv0, inner.y, vLength, false);
+                        v1.uv0 = GetOverturnUV(v1.uv0, inner.y, inner.w, false);
+                        v2.uv0 = GetOverturnUV(v2.uv0, inner.y, inner.w, false);
+                        v3.uv0 = GetOverturnUV(v3.uv0, inner.y, inner.w, false);
                     }
                 }
 
@@ -462,6 +458,7 @@ namespace Waiting.UGUI.Effects
                     border[axis + 2] *= borderScaleRatio;
                 }
             }
+
             return border;
         }
 
@@ -489,15 +486,15 @@ namespace Waiting.UGUI.Effects
         /// <param name="length"></param>
         /// <param name="isHorizontal"></param>
         /// <returns></returns>
-        protected Vector2 GetOverturnUV(Vector2 uv, float start, float length, bool isHorizontal = true)
+        protected Vector2 GetOverturnUV(Vector2 uv, float start, float end, bool isHorizontal = true)
         {
             if (isHorizontal)
             {
-                uv.x = length - uv.x + start;
+                uv.x = end - uv.x + start;
             }
             else
             {
-                uv.y = length - uv.y + start;
+                uv.y = end - uv.y + start;
             }
 
             return uv;
