@@ -183,6 +183,8 @@ namespace Waiting.UGUI.Effects
             if (!(graphic as Image).hasBorder)
             {
                 DrawSimple(output, count);
+
+                return;
             }
 
             Rect rect = graphic.GetPixelAdjustedRect();
