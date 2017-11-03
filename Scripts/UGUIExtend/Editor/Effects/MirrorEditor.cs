@@ -3,6 +3,7 @@ using UnityEditor;
 using UnityEditor.AnimatedValues;
 using UnityEngine;
 using UnityEngine.UI;
+using Waiting.UGUI.Effects;
 
 /// <summary>
 ///
@@ -14,7 +15,7 @@ using UnityEngine.UI;
 /// note:
 /// 
 /// </summary>
-namespace Waiting.UGUI.Effects
+namespace Waiting.UGUIEditor.Effects
 {
     [CustomEditor(typeof(Mirror), true)]
     [CanEditMultipleObjects]
