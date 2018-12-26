@@ -5,7 +5,7 @@
 
 
 ----------
-![v1.0.0](https://img.shields.io/badge/versions-v1.0.0-green.svg)
+![v1.0.0](https://img.shields.io/badge/versions-v1.0.0-green.svg) ![v1.0.0](https://img.shields.io/badge/Unity-v5.0.0+-blue.svg)
 
 ![mind](https://raw.githubusercontent.com/L-Lawliet/UGUIExtend/master/UGUIEctend%20mind.png)
 
@@ -16,3 +16,5 @@
 
 2. **OutlineShadow**
 3. **RoundRect**
+
+> **PS：“Develop”分支内容未开发完成，请使用主分支“master”**
