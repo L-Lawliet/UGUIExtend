@@ -6,7 +6,7 @@ using Waiting.UGUI.Charts;
 
 /// <summary>
 ///
-/// name:Cobweb
+/// name:CobwebEditor
 /// author:Lawliet
 /// date:2018/10/4 13:58:04
 /// versions:

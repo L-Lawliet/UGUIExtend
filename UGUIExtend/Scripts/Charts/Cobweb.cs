@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 /// <summary>
@@ -17,9 +18,9 @@ namespace Waiting.UGUI.Charts
     public class Cobweb : MaskableGraphic, ICanvasRaycastFilter
     {
         [SerializeField]
-        protected int m_Side = 3;
+        protected uint m_Side = 3;
 
-        public int side
+        public uint side
         {
             set
             {
@@ -35,18 +36,18 @@ namespace Waiting.UGUI.Charts
             }
         }
 
+        /// <summary>
+        /// 限制最小百分比
+        /// 1.当percent为0时，则绘制的范围为minPercent，不至于绘制不出来
+        /// 2.使效果更加丰满
+        /// </summary>
         [SerializeField]
+        [Range(0.01f, 0.3f)]
         protected float m_MinPercent = 0.01f;
 
         [SerializeField]
         [Range(0.0f, 1.0f)]
         protected float[] m_Percents;
-
-        [SerializeField]
-        protected RectTransform m_Templete;
-
-        [SerializeField]
-        protected RectTransform[] _children;
 
         public Cobweb()
         {
@@ -68,9 +69,7 @@ namespace Waiting.UGUI.Charts
             {
                 Vector2 point = new Vector2();
 
-                float percent = Mathf.Max(m_Percents[i], m_MinPercent); //限制最小百分比，让三角形不至于绘制不成
-
-                float radius = size * 0.5f * percent;
+                float radius = size * 0.5f * (m_MinPercent + (1 - m_MinPercent) * m_Percents[i]);
 
                 point.x = Mathf.Cos((angle * i + 90) * Mathf.Deg2Rad) * radius;
                 point.y = Mathf.Sin((angle * i + 90) * Mathf.Deg2Rad) * radius;
@@ -117,6 +116,17 @@ namespace Waiting.UGUI.Charts
 
             base.SetVerticesDirty();
         }
+
+        public float GetPercent(int index)
+        {
+            if (index > m_Percents.Length - 1)
+            {
+                return 0;
+            }
+
+            return m_Percents[index];
+        }
+
 
         protected void ChangeSideCount()
         {
