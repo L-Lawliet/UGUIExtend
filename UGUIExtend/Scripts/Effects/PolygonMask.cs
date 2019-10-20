@@ -42,6 +42,9 @@ namespace Waiting.UGUI.Effects
             }
         }
 
+        [SerializeField]
+        private int _drawIndex;
+
         public override void ModifyMesh(VertexHelper vh)
         {
             if (!IsActive())
@@ -65,6 +68,7 @@ namespace Waiting.UGUI.Effects
             vh.Clear();
             vh.AddUIVertexTriangleStream(output);
 
+            ListPool<UIVertex>.Recycle(original);
             ListPool<UIVertex>.Recycle(output);
         }
 
@@ -81,15 +85,93 @@ namespace Waiting.UGUI.Effects
         {
             var len = m_PolygonCollider2D.points.Length;
 
-            var k = 0;
-
-            for (int i = 0; i < len-2; i++)
+            /*for (int i = 0; i < len-2; i++)
             {
                 output.Add(GetVertex(0));
                 output.Add(GetVertex(i+1));
                 output.Add(GetVertex(i+2));
 
+            }*/
+
+            //return;
+
+            List<int> indexList = new List<int>(len);
+
+            for (int i = len - 1; i >= 0; i--)
+            {
+                indexList.Add(i);
+
+                /*if (i == _drawIndex)
+                {
+                    output.Add(GetVertex(0));
+                    output.Add(GetVertex(i + 1));
+                    output.Add(GetVertex(i + 2));
+                }*/
             }
+
+            //return;
+
+            while (indexList.Count > 2 && indexList.Count > _drawIndex)
+            {
+                int i;
+
+                len = indexList.Count;
+
+                bool isLeft = false;
+
+                for (i = 0; i < len; i++)
+                {
+                    int p = indexList[(i + 0) % len];
+                    int s = indexList[(i + 1) % len];
+                    int q = indexList[(i + 2) % len];
+
+                    if (len == 3)  //只剩下三个点了,直接绘制
+                    {
+                        output.Add(GetVertex(p));
+                        output.Add(GetVertex(s));
+                        output.Add(GetVertex(q));
+
+                        indexList.RemoveAt(i + 1);
+
+                        break;
+                    }
+
+                    isLeft = ToLeftTest(m_PolygonCollider2D.points, p, q, s);
+
+                    if (isLeft) // s在左边，表示为嘴巴,对上一个三角形切耳
+                    {
+                        p = indexList[(i + len - 1) % len];
+                        s = indexList[(i + 0) % len];
+                        q = indexList[(i + 1) % len];
+
+                        output.Add(GetVertex(p));
+                        output.Add(GetVertex(s));
+                        output.Add(GetVertex(q));
+
+                        indexList.RemoveAt(i);
+
+                        break;
+                    }
+                }
+
+                if (!isLeft) //没有嘴巴，直接绘制
+                {
+                    for (i = 0; i < len - 2; i++)
+                    {
+                        int p = indexList[0];
+                        int s = indexList[(i + 1) % len];
+                        int q = indexList[(i + 2) % len];
+
+                        output.Add(GetVertex(p));
+                        output.Add(GetVertex(s));
+                        output.Add(GetVertex(q));
+
+                    }
+
+                    break;
+                }
+            }
+            
         }
 
         private UIVertex GetVertex(int index)
@@ -101,6 +183,21 @@ namespace Waiting.UGUI.Effects
             v.uv0 = Vector2.zero;
 
             return v;
+        }
+
+        private bool ToLeftTest(Vector2[] points, int pIndex, int qIndex, int sIndex)
+        {
+            return ToLeftTest(points[pIndex], points[qIndex], points[sIndex]);
+        }
+
+        private bool ToLeftTest(Vector2 p, Vector2 q, Vector2 s)
+        {
+            return Area2(p,  q,  s) > 0;
+        }
+
+        private float Area2(Vector2 p, Vector2 q, Vector2 s)
+        {
+            return p.x * q.y - p.y * q.x + q.x * s.y - q.y * s.x + s.x * p.y - s.y * p.x;
         }
     }
 }
