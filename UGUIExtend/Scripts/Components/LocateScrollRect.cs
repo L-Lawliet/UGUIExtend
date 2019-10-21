@@ -5,7 +5,7 @@ using UnityEngine.UI;
 /// <summary>
 ///
 /// name:LocateScrollRect
-/// author:Administrator
+/// author:Lawliet
 /// date:2017/12/8 18:31:17
 /// versions:
 /// introduce:

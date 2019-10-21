@@ -8,7 +8,7 @@ using Waiting.UGUI.Effects;
 /// <summary>
 ///
 /// name:MirrorEditor
-/// author:Administrator
+/// author:Lawliet
 /// date:2017/2/4 10:18:04
 /// versions:
 /// introduce:

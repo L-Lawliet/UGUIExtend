@@ -9,7 +9,7 @@ using Waiting.UGUI.Collections;
 /// <summary>
 ///
 /// name:Mirror
-/// author:Administrator
+/// author:Lawliet
 /// date:2017/1/19 11:53:01
 /// versions:
 /// introduce:
