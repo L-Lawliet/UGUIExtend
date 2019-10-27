@@ -1,5 +1,6 @@
 ﻿using System;
 using UnityEngine;
+using UnityEngine.Sprites;
 using UnityEngine.UI;
 
 /// <summary>
@@ -16,6 +17,23 @@ namespace Waiting.UGUI.Components
 {
     public class RegularPolygon : MaskableGraphic, ICanvasRaycastFilter
     {
+        [SerializeField]
+        protected Sprite m_OverrideSprite;
+
+        public Sprite overrideSprite
+        {
+            get
+            {
+                return m_OverrideSprite;
+            }
+            set
+            {
+                m_OverrideSprite = value;
+
+                this.SetAllDirty();
+            }
+        }
+
         [SerializeField]
         protected uint m_Side = 3;
 
@@ -52,6 +70,23 @@ namespace Waiting.UGUI.Components
             }
         }
 
+        public override Texture mainTexture
+        {
+            get
+            {
+                if (overrideSprite == null)
+                {
+                    if (material != null && material.mainTexture != null)
+                    {
+                        return material.mainTexture;
+                    }
+                    return s_WhiteTexture;
+                }
+
+                return overrideSprite.texture;
+            }
+        }
+
         public RegularPolygon()
         {
             ChangeSideCount();
@@ -71,7 +106,16 @@ namespace Waiting.UGUI.Components
 
         private void DrawPolygon(VertexHelper vh)
         {
-            var color32 = color;
+            Rect rect = this.GetPixelAdjustedRect();
+
+            Vector4 outer = new Vector4();
+
+            if (overrideSprite != null)
+            {
+                outer = DataUtility.GetOuterUV(overrideSprite);
+            }
+
+
             vh.Clear();
 
             float size = Mathf.Min(rectTransform.sizeDelta.x, rectTransform.sizeDelta.y);
@@ -92,13 +136,15 @@ namespace Waiting.UGUI.Components
                 points[i] = point;
             }
 
-            vh.AddVert(Vector2.zero, color32, new Vector2(0, 1));
+            UIVertex center = GetVertex(Vector2.zero, rect, outer);
+
+            vh.AddVert(center);
 
             for (int i = 0; i < m_Side; i++)
             {
-                Vector2 a = points[i];
+                UIVertex a = GetVertex(points[i], rect, outer);
 
-                vh.AddVert(a, color32, new Vector2(0, 1));
+                vh.AddVert(a);
             }
 
             for (int i = 0; i < m_Side; i++)
@@ -117,7 +163,15 @@ namespace Waiting.UGUI.Components
 
         private void DrawRing(VertexHelper vh)
         {
-            var color32 = color;
+            Rect rect = this.GetPixelAdjustedRect();
+
+            Vector4 outer = new Vector4();
+
+            if (overrideSprite != null)
+            {
+                outer = DataUtility.GetOuterUV(overrideSprite);
+            }
+
             vh.Clear();
 
             float size = Mathf.Min(rectTransform.sizeDelta.x, rectTransform.sizeDelta.y);
@@ -152,9 +206,9 @@ namespace Waiting.UGUI.Components
 
             for (int i = 0; i < len; i++)
             {
-                Vector2 a = points[i];
+                UIVertex a = GetVertex(points[i], rect, outer);
 
-                vh.AddVert(a, color32, new Vector2(0, 1));
+                vh.AddVert(a);
             }
 
             for (int i = 0; i < sideCount; i++)
@@ -178,6 +232,21 @@ namespace Waiting.UGUI.Components
         public bool IsRaycastLocationValid(Vector2 sp, Camera eventCamera)
         {
             return false;
+        }
+
+        private UIVertex GetVertex(Vector2 vector, Rect rect, Vector4 inner)
+        {
+            UIVertex vertex = new UIVertex();
+            vertex.position = vector;
+            vertex.color = color;
+            vertex.normal = new Vector3(0, 0, -1);
+
+            float u = (vertex.position.x - rect.x) / rect.width * (inner.z - inner.x) + inner.x;
+            float v = (vertex.position.y - rect.y) / rect.height * (inner.w - inner.y) + inner.y;
+
+            vertex.uv0 = new Vector2(u, v);
+
+            return vertex;
         }
 
         protected void ChangeSideCount()

@@ -20,9 +20,13 @@ namespace Waiting.UGUIEditor.Components
     [CanEditMultipleObjects]
     public class RegularPolygonEditor : GraphicEditor
     {
+        protected SerializedProperty m_OverrideSprite;
+
         protected SerializedProperty m_Side;
 
         protected SerializedProperty m_InnerPercent;
+
+        private GUIContent m_OverrideSpriteContent;
 
         private GUIContent m_SideContent;
 
@@ -39,9 +43,13 @@ namespace Waiting.UGUIEditor.Components
         {
             base.OnEnable();
 
+            m_OverrideSpriteContent = new GUIContent("Source Sprite");
+
             m_SideContent = new GUIContent("Side");
 
             m_InnerPercentContent = new GUIContent("InnerPercent");
+
+            m_OverrideSprite = serializedObject.FindProperty("m_OverrideSprite");
 
             m_Side = serializedObject.FindProperty("m_Side");
 
@@ -65,6 +73,8 @@ namespace Waiting.UGUIEditor.Components
             }
 
             EditorGUILayout.PropertyField(m_InnerPercent, m_InnerPercentContent);
+
+            EditorGUILayout.PropertyField(m_OverrideSprite, m_OverrideSpriteContent);
 
             AppearanceControlsGUI();
             RaycastControlsGUI();

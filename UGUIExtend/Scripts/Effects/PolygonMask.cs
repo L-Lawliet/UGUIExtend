@@ -195,7 +195,7 @@ namespace Waiting.UGUI.Effects
 
             Rect rect = graphic.GetPixelAdjustedRect();
 
-            Vector4 inner = new Vector4();
+            Vector4 outer = new Vector4();
 
             if (graphic is Image)
             {
@@ -203,8 +203,7 @@ namespace Waiting.UGUI.Effects
 
                 if (overrideSprite != null)
                 {
-                    //此处使用inner是因为Image绘制Tiled时，会把透明区域也绘制了。
-                    inner = DataUtility.GetInnerUV(overrideSprite);
+                    outer = DataUtility.GetOuterUV(overrideSprite);
                 }
             }
 
@@ -215,13 +214,13 @@ namespace Waiting.UGUI.Effects
             Vector2 v2 = new Vector2(maskRect.rect.xMax, maskRect.rect.yMax) - offset;
             Vector2 v3 = new Vector2(maskRect.rect.xMin, maskRect.rect.yMax) - offset;
 
-            output.Add(GetVertex(v0, rect, overrideSprite, inner));
-            output.Add(GetVertex(v1, rect, overrideSprite, inner));
-            output.Add(GetVertex(v2, rect, overrideSprite, inner));
+            output.Add(GetVertex(v0, rect, overrideSprite, outer));
+            output.Add(GetVertex(v1, rect, overrideSprite, outer));
+            output.Add(GetVertex(v2, rect, overrideSprite, outer));
 
-            output.Add(GetVertex(v0, rect, overrideSprite, inner));
-            output.Add(GetVertex(v2, rect, overrideSprite, inner));
-            output.Add(GetVertex(v3, rect, overrideSprite, inner));
+            output.Add(GetVertex(v0, rect, overrideSprite, outer));
+            output.Add(GetVertex(v2, rect, overrideSprite, outer));
+            output.Add(GetVertex(v3, rect, overrideSprite, outer));
         }
 
         private void DrawRegularPolygon(List<UIVertex> original, List<UIVertex> output, int count)
@@ -230,7 +229,7 @@ namespace Waiting.UGUI.Effects
 
             Rect rect = graphic.GetPixelAdjustedRect();
 
-            Vector4 inner = new Vector4();
+            Vector4 outer = new Vector4();
 
             if (graphic is Image)
             {
@@ -238,8 +237,7 @@ namespace Waiting.UGUI.Effects
 
                 if (overrideSprite != null)
                 {
-                    //此处使用inner是因为Image绘制Tiled时，会把透明区域也绘制了。
-                    inner = DataUtility.GetInnerUV(overrideSprite);
+                    outer = DataUtility.GetOuterUV(overrideSprite);
                 }
             }
 
@@ -291,13 +289,13 @@ namespace Waiting.UGUI.Effects
                     d = sideCount;
                 }
 
-                output.Add(GetVertex(points, c, rect, overrideSprite, inner));
-                output.Add(GetVertex(points, b, rect, overrideSprite, inner));
-                output.Add(GetVertex(points, a, rect, overrideSprite, inner));
+                output.Add(GetVertex(points, c, rect, overrideSprite, outer));
+                output.Add(GetVertex(points, b, rect, overrideSprite, outer));
+                output.Add(GetVertex(points, a, rect, overrideSprite, outer));
 
-                output.Add(GetVertex(points, b, rect, overrideSprite, inner));
-                output.Add(GetVertex(points, d, rect, overrideSprite, inner));
-                output.Add(GetVertex(points, c, rect, overrideSprite, inner));
+                output.Add(GetVertex(points, b, rect, overrideSprite, outer));
+                output.Add(GetVertex(points, d, rect, overrideSprite, outer));
+                output.Add(GetVertex(points, c, rect, overrideSprite, outer));
             }
         }
 
@@ -315,7 +313,7 @@ namespace Waiting.UGUI.Effects
 
             Rect rect = graphic.GetPixelAdjustedRect();
 
-            Vector4 inner = new Vector4();
+            Vector4 outer = new Vector4();
 
             if (graphic is Image)
             {
@@ -323,8 +321,7 @@ namespace Waiting.UGUI.Effects
 
                 if(overrideSprite != null)
                 {
-                    //此处使用inner是因为Image绘制Tiled时，会把透明区域也绘制了。
-                    inner = DataUtility.GetInnerUV(overrideSprite);
+                    outer = DataUtility.GetOuterUV(overrideSprite);
                 }
                 
             }
@@ -355,9 +352,9 @@ namespace Waiting.UGUI.Effects
 
                     if (len == 3)  //只剩下三个点了,直接绘制
                     {
-                        output.Add(GetVertex(points, p, rect, overrideSprite, inner));
-                        output.Add(GetVertex(points, s, rect, overrideSprite, inner));
-                        output.Add(GetVertex(points, q, rect, overrideSprite, inner));
+                        output.Add(GetVertex(points, p, rect, overrideSprite, outer));
+                        output.Add(GetVertex(points, s, rect, overrideSprite, outer));
+                        output.Add(GetVertex(points, q, rect, overrideSprite, outer));
 
                         indexList.RemoveAt(i + 1);
 
@@ -372,9 +369,9 @@ namespace Waiting.UGUI.Effects
                         s = indexList[(i + 0) % len];
                         q = indexList[(i + 1) % len];
 
-                        output.Add(GetVertex(points, p, rect, overrideSprite, inner));
-                        output.Add(GetVertex(points, s, rect, overrideSprite, inner));
-                        output.Add(GetVertex(points, q, rect, overrideSprite, inner));
+                        output.Add(GetVertex(points, p, rect, overrideSprite, outer));
+                        output.Add(GetVertex(points, s, rect, overrideSprite, outer));
+                        output.Add(GetVertex(points, q, rect, overrideSprite, outer));
 
                         indexList.RemoveAt(i);
 
@@ -390,9 +387,9 @@ namespace Waiting.UGUI.Effects
                         int s = indexList[(i + 1) % len];
                         int q = indexList[(i + 2) % len];
 
-                        output.Add(GetVertex(points, p, rect, overrideSprite, inner));
-                        output.Add(GetVertex(points, s, rect, overrideSprite, inner));
-                        output.Add(GetVertex(points, q, rect, overrideSprite, inner));
+                        output.Add(GetVertex(points, p, rect, overrideSprite, outer));
+                        output.Add(GetVertex(points, s, rect, overrideSprite, outer));
+                        output.Add(GetVertex(points, q, rect, overrideSprite, outer));
 
                     }
 
