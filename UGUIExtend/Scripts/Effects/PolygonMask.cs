@@ -130,8 +130,8 @@ namespace Waiting.UGUI.Effects
             get { return m_RectTransform ?? (m_RectTransform = GetComponent<RectTransform>()); }
         }
 
-        [SerializeField]     
-        private int m_DrawStep;
+        /*[SerializeField]     
+        private int m_DrawStep;*/
 
         public override void ModifyMesh(VertexHelper vh)
         {
@@ -336,7 +336,7 @@ namespace Waiting.UGUI.Effects
 
             }
 
-            while (indexList.Count > 2 && indexList.Count > points.Length - m_DrawStep)
+            while (indexList.Count > 2) //indexList.Count > points.Length - m_DrawStep
             {
                 int i;
 
