@@ -28,7 +28,7 @@ namespace Waiting.UGUI.Effects
             /// <summary>
             /// RectTransform
             /// </summary>
-            Rect,
+            //Rect,
             /// <summary>
             /// 正多边形
             /// </summary>
@@ -43,7 +43,7 @@ namespace Waiting.UGUI.Effects
         /// 镜像类型
         /// </summary>
         [SerializeField]
-        private MaskType m_MaskType = MaskType.Rect;
+        private MaskType m_MaskType = MaskType.Polygon;
 
         public MaskType maskType
         {
@@ -133,6 +133,16 @@ namespace Waiting.UGUI.Effects
         /*[SerializeField]     
         private int m_DrawStep;*/
 
+#if UNITY_EDITOR
+        public void SetDirty()
+        {
+            if (graphic != null)
+            {
+                graphic.SetVerticesDirty();
+            }
+        }
+#endif
+
         public override void ModifyMesh(VertexHelper vh)
         {
             if (!IsActive())
@@ -140,10 +150,7 @@ namespace Waiting.UGUI.Effects
                 return;
             }
 
-            if (m_PolygonCollider2D == null)
-            {
-                return;
-            }
+            
 
             var original = ListPool<UIVertex>.Get();
             var output = ListPool<UIVertex>.Get();
@@ -153,16 +160,6 @@ namespace Waiting.UGUI.Effects
 
             switch (m_MaskType)
             {
-                case MaskType.Rect:
-                    if(maskRect != null)
-                    {
-                        DrawRect(original, output, count);
-                    }
-                    else
-                    {
-                        return;
-                    }
-                    break;
                 case MaskType.RegularPolygon:
                     if (regularPolygon != null)
                     {
@@ -175,6 +172,10 @@ namespace Waiting.UGUI.Effects
                     
                     break;
                 case MaskType.Polygon:
+                    if (m_PolygonCollider2D == null)
+                    {
+                        return;
+                    }
                     DrawPolygon(original, output, count);
                     break;
                 default:

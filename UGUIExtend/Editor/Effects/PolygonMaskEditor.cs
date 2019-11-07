@@ -9,7 +9,7 @@ using Waiting.UGUI.Effects;
 
 /// <summary>
 ///
-/// name:MirrorEditor
+/// name:PolygonMaskEditor
 /// author:Lawliet
 /// date:2019/10/1 11:53:01
 /// versions:
@@ -33,7 +33,11 @@ namespace Waiting.UGUIEditor.Effects
         private GUIContent m_RegularPolygonContent;
         private GUIContent m_PolygonCollider2DContent;
         //private GUIContent m_DrawStepContent;
-        
+
+
+        private int m_PathCount;
+
+        private Vector2[] m_Points;
 
         protected virtual void OnDisable()
         {
@@ -62,9 +66,6 @@ namespace Waiting.UGUIEditor.Effects
 
             switch ((PolygonMask.MaskType)m_MaskType.enumValueIndex)
             {
-                case PolygonMask.MaskType.Rect:
-                    EditorGUILayout.PropertyField(m_MaskRect, m_MaskRectContent);
-                    break;
                 case PolygonMask.MaskType.RegularPolygon:
                     EditorGUILayout.PropertyField(m_RegularPolygon, m_RegularPolygonContent);
                     break;
@@ -88,6 +89,62 @@ namespace Waiting.UGUIEditor.Effects
             }
 
             serializedObject.ApplyModifiedProperties();
+        }
+
+        private void OnSceneGUI()
+        {
+            var polygon = target as PolygonMask;
+
+            if (polygon == null)
+            {
+                return;
+            }
+
+            if (polygon.polygonCollider2D == null)
+            {
+                return;
+            }
+
+            //Debug.Log(0);
+
+            bool dirty = false;
+
+            if (polygon.polygonCollider2D.pathCount != m_PathCount)
+            {
+                //Debug.Log(1);
+
+                m_PathCount = polygon.polygonCollider2D.pathCount;
+                m_Points = polygon.polygonCollider2D.points;
+                dirty = true;
+            }
+            else
+            {
+                if(m_Points == null)
+                {
+                    m_Points = polygon.polygonCollider2D.points;
+                    dirty = true;
+                }
+                else
+                {
+                    for (int i = 0; i < m_Points.Length; i++)
+                    {
+                        if(polygon.polygonCollider2D.points[i]!= m_Points[i])
+                        {
+                            //Debug.Log(2);
+
+                            m_Points = polygon.polygonCollider2D.points;
+                            dirty = true;
+                            break;
+                        }
+                    }
+                }
+                
+            }
+
+            if (dirty)
+            {
+                polygon.SetDirty();
+            }
         }
     }
 }
