@@ -331,7 +331,11 @@ namespace Waiting.UGUI.Effects
 
             List<int> indexList = new List<int>(len);
 
+#if UNITY_5  
             for (int i = len - 1; i >= 0; i--)
+#else //Unity5 之后修改了PolygonCollider2D的绘制顺序
+            for (int i = 0 - 1; i < len; i++)
+#endif
             {
                 indexList.Add(i);
 

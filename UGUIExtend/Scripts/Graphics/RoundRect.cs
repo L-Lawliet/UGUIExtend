@@ -169,18 +169,18 @@ namespace Waiting.UGUI.Graphics
                         new Vector2(s_UVScratch[x2].x, s_UVScratch[y2].y));
 
                     AddQuad(toFill,
-                        new Vector2(-s_VertScratch[x].x, s_VertScratch[y].y),
-                        new Vector2(-s_VertScratch[x2].x, s_VertScratch[y2].y),
+                        new Vector2(-s_VertScratch[x2].x, s_VertScratch[y].y),
+                        new Vector2(-s_VertScratch[x].x, s_VertScratch[y2].y),
                         color,
-                        new Vector2(s_UVScratch[x].x, s_UVScratch[y].y),
-                        new Vector2(s_UVScratch[x2].x, s_UVScratch[y2].y));
+                        new Vector2(s_UVScratch[x2].x, s_UVScratch[y].y),
+                        new Vector2(s_UVScratch[x].x, s_UVScratch[y2].y));
 
                     AddQuad(toFill,
-                        new Vector2(s_VertScratch[x].x, -s_VertScratch[y].y),
-                        new Vector2(s_VertScratch[x2].x, -s_VertScratch[y2].y),
+                        new Vector2(s_VertScratch[x].x, -s_VertScratch[y2].y),
+                        new Vector2(s_VertScratch[x2].x, -s_VertScratch[y].y),
                         color,
-                        new Vector2(s_UVScratch[x].x, s_UVScratch[y].y),
-                        new Vector2(s_UVScratch[x2].x, s_UVScratch[y2].y));
+                        new Vector2(s_UVScratch[x].x, s_UVScratch[y2].y),
+                        new Vector2(s_UVScratch[x2].x, s_UVScratch[y].y));
 
                     AddQuad(toFill,
                         new Vector2(-s_VertScratch[x].x, -s_VertScratch[y].y),

@@ -377,7 +377,7 @@ namespace Waiting.UGUI.Effects
         /// <param name="isHorizontal"></param>
         protected void MirrorVerts(Rect rect, List<UIVertex> verts, int count, bool isHorizontal = true)
         {
-            for (int i = 0; i < count; i++)
+            for (int i = count - 1; i >= 0; i--)
             {
                 UIVertex vertex = verts[i];
 
