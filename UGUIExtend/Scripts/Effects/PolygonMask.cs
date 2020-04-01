@@ -416,8 +416,8 @@ namespace Waiting.UGUI.Effects
             vertex.color = graphic.color;
             vertex.normal = new Vector3(0, 0, -1);
 
-            float u = (vertex.position.x - rect.x) / rect.width * inner.z + inner.x;
-            float v = (vertex.position.y - rect.y) / rect.height * inner.w + inner.y;
+            float u = (vertex.position.x - rect.x) / rect.width * (inner.z - inner.x) + inner.x;
+            float v = (vertex.position.y - rect.y) / rect.height * (inner.w - inner.y) + inner.y;
 
             vertex.uv0 = new Vector2(u, v);
 
