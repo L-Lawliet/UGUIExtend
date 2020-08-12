@@ -122,6 +122,30 @@ namespace Waiting.UGUI.Effects
             }
         }
 
+        /// <summary>
+        /// 采用局部坐标
+        /// 不采用的话，会根据Mask的RectTransform做偏移
+        /// </summary>
+        [SerializeField]
+        private bool m_IsLocal;
+
+        public bool isLocal
+        {
+            get { return m_IsLocal; }
+            set
+            {
+                if(m_IsLocal != value)
+                {
+                    m_IsLocal = value;
+
+                    if(graphic != null)
+                    {
+                        graphic.SetVerticesDirty();
+                    }
+                }
+            }
+        }
+
         [NonSerialized]
         private RectTransform m_RectTransform;
 
@@ -181,7 +205,6 @@ namespace Waiting.UGUI.Effects
                 default:
                     break;
             }
-            
 
             vh.Clear();
             vh.AddUIVertexTriangleStream(output);
@@ -230,7 +253,7 @@ namespace Waiting.UGUI.Effects
 
             Rect rect = graphic.GetPixelAdjustedRect();
 
-            Vector4 outer = new Vector4();
+            Vector4 inner = new Vector4();
 
             if (graphic is Image)
             {
@@ -238,14 +261,19 @@ namespace Waiting.UGUI.Effects
 
                 if (overrideSprite != null)
                 {
-                    outer = DataUtility.GetOuterUV(overrideSprite);
+                    inner = DataUtility.GetInnerUV(overrideSprite);
                 }
             }
 
             uint side = regularPolygon.side;
             float innerPercent = regularPolygon.innerPercent;
 
-            Vector2 offset = GetRectTransformOffset(rectTransform, regularPolygon.rectTransform);
+            Vector2 offset = new Vector2();
+
+            if (!m_IsLocal)
+            {
+                offset = GetRectTransformOffset(rectTransform, regularPolygon.rectTransform);
+            }
 
             float size = Mathf.Min(regularPolygon.rectTransform.sizeDelta.x, regularPolygon.rectTransform.sizeDelta.y);
 
@@ -268,13 +296,13 @@ namespace Waiting.UGUI.Effects
                 point.x = Mathf.Cos((angle * i + 90) * Mathf.Deg2Rad) * outerRadius;
                 point.y = Mathf.Sin((angle * i + 90) * Mathf.Deg2Rad) * outerRadius;
 
-                points[i] = point - offset;
+                points[i] = point;
 
                 ///添加内点
                 point.x = Mathf.Cos((angle * i + 90) * Mathf.Deg2Rad) * innerRadius;
                 point.y = Mathf.Sin((angle * i + 90) * Mathf.Deg2Rad) * innerRadius;
 
-                points[i + sideCount] = point - offset;
+                points[i + sideCount] = point;
             }
 
             for (int i = 0; i < sideCount; i++)
@@ -290,13 +318,13 @@ namespace Waiting.UGUI.Effects
                     d = sideCount;
                 }
 
-                output.Add(GetVertex(points, c, rect, overrideSprite, outer));
-                output.Add(GetVertex(points, b, rect, overrideSprite, outer));
-                output.Add(GetVertex(points, a, rect, overrideSprite, outer));
+                output.Add(GetVertex(points, c, offset, rect, overrideSprite, inner));
+                output.Add(GetVertex(points, b, offset, rect, overrideSprite, inner));
+                output.Add(GetVertex(points, a, offset, rect, overrideSprite, inner));
 
-                output.Add(GetVertex(points, b, rect, overrideSprite, outer));
-                output.Add(GetVertex(points, d, rect, overrideSprite, outer));
-                output.Add(GetVertex(points, c, rect, overrideSprite, outer));
+                output.Add(GetVertex(points, b, offset, rect, overrideSprite, inner));
+                output.Add(GetVertex(points, d, offset, rect, overrideSprite, inner));
+                output.Add(GetVertex(points, c, offset, rect, overrideSprite, inner));
             }
         }
 
@@ -314,7 +342,7 @@ namespace Waiting.UGUI.Effects
 
             Rect rect = graphic.GetPixelAdjustedRect();
 
-            Vector4 outer = new Vector4();
+            Vector4 inner = new Vector4();
 
             if (graphic is Image)
             {
@@ -322,9 +350,15 @@ namespace Waiting.UGUI.Effects
 
                 if(overrideSprite != null)
                 {
-                    outer = DataUtility.GetOuterUV(overrideSprite);
+                    inner = DataUtility.GetInnerUV(overrideSprite);
                 }
-                
+            }
+
+            Vector2 offset = new Vector2();
+
+            if (!m_IsLocal)
+            {
+                offset = GetRectTransformOffset(rectTransform, m_PolygonCollider2D.transform as RectTransform);
             }
 
             var len = points.Length;
@@ -334,7 +368,7 @@ namespace Waiting.UGUI.Effects
 #if UNITY_5  
             for (int i = len - 1; i >= 0; i--)
 #else //Unity5 之后修改了PolygonCollider2D的绘制顺序
-            for (int i = 0 - 1; i < len; i++)
+            for (int i = 0; i < len; i++)
 #endif
             {
                 indexList.Add(i);
@@ -357,9 +391,9 @@ namespace Waiting.UGUI.Effects
 
                     if (len == 3)  //只剩下三个点了,直接绘制
                     {
-                        output.Add(GetVertex(points, p, rect, overrideSprite, outer));
-                        output.Add(GetVertex(points, s, rect, overrideSprite, outer));
-                        output.Add(GetVertex(points, q, rect, overrideSprite, outer));
+                        output.Add(GetVertex(points, p, offset, rect, overrideSprite, inner));
+                        output.Add(GetVertex(points, s, offset, rect, overrideSprite, inner));
+                        output.Add(GetVertex(points, q, offset, rect, overrideSprite, inner));
 
                         indexList.RemoveAt(i + 1);
 
@@ -374,9 +408,9 @@ namespace Waiting.UGUI.Effects
                         s = indexList[(i + 0) % len];
                         q = indexList[(i + 1) % len];
 
-                        output.Add(GetVertex(points, p, rect, overrideSprite, outer));
-                        output.Add(GetVertex(points, s, rect, overrideSprite, outer));
-                        output.Add(GetVertex(points, q, rect, overrideSprite, outer));
+                        output.Add(GetVertex(points, p, offset, rect, overrideSprite, inner));
+                        output.Add(GetVertex(points, s, offset, rect, overrideSprite, inner));
+                        output.Add(GetVertex(points, q, offset, rect, overrideSprite, inner));
 
                         indexList.RemoveAt(i);
 
@@ -392,9 +426,9 @@ namespace Waiting.UGUI.Effects
                         int s = indexList[(i + 1) % len];
                         int q = indexList[(i + 2) % len];
 
-                        output.Add(GetVertex(points, p, rect, overrideSprite, outer));
-                        output.Add(GetVertex(points, s, rect, overrideSprite, outer));
-                        output.Add(GetVertex(points, q, rect, overrideSprite, outer));
+                        output.Add(GetVertex(points, p, offset, rect, overrideSprite, inner));
+                        output.Add(GetVertex(points, s, offset, rect, overrideSprite, inner));
+                        output.Add(GetVertex(points, q, offset, rect, overrideSprite, inner));
 
                     }
 
@@ -404,9 +438,9 @@ namespace Waiting.UGUI.Effects
             
         }
 
-        private UIVertex GetVertex(Vector2[] list, int index, Rect rect, Sprite overrideSprite, Vector4 inner)
+        private UIVertex GetVertex(Vector2[] list, int index, Vector2 offset, Rect rect, Sprite overrideSprite, Vector4 inner)
         {
-            return GetVertex(list[index], rect, overrideSprite, inner);
+            return GetVertex(list[index] - offset, rect, overrideSprite, inner);
         }
 
         private UIVertex GetVertex(Vector2 vector, Rect rect, Sprite overrideSprite, Vector4 inner)
