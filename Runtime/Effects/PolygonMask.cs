@@ -397,6 +397,8 @@ namespace Waiting.UGUI.Effects
 
                         indexList.RemoveAt(i + 1);
 
+                        isLeft = true;
+
                         break;
                     }
 
