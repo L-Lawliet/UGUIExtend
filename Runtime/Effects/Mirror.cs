@@ -62,6 +62,28 @@ namespace Waiting.UGUI.Effects
             }
         }
 
+        /// <summary>
+        /// 颠倒元素
+        /// </summary>
+        [SerializeField]
+        private bool m_IsReversed = false;
+
+        public bool isReversed
+        {
+            get { return m_IsReversed; }
+            set
+            {
+                if (m_IsReversed != value)
+                {
+                    m_IsReversed = value;
+                    if (graphic != null)
+                    {
+                        graphic.SetVerticesDirty();
+                    }
+                }
+            }
+        }
+
         [NonSerialized]
         private RectTransform m_RectTransform;
 
@@ -159,16 +181,16 @@ namespace Waiting.UGUI.Effects
             {
                 case MirrorType.Horizontal:
                     ExtendCapacity(output, count);
-                    MirrorVerts(rect, output, count, true);
+                    MirrorVerts(rect, output, count, true, true);
                     break;
                 case MirrorType.Vertical:
                     ExtendCapacity(output, count);
-                    MirrorVerts(rect, output, count, false);
+                    MirrorVerts(rect, output, count, false, true);
                     break;
                 case MirrorType.Quarter:
                     ExtendCapacity(output, count * 3);
-                    MirrorVerts(rect, output, count, true);
-                    MirrorVerts(rect, output, count * 2, false);
+                    MirrorVerts(rect, output, count, true, false);
+                    MirrorVerts(rect, output, count * 2, false, false);
                     break;
             }
         }
@@ -197,16 +219,16 @@ namespace Waiting.UGUI.Effects
             {
                 case MirrorType.Horizontal:
                     ExtendCapacity(output, count);
-                    MirrorVerts(rect, output, count, true);
+                    MirrorVerts(rect, output, count, true, true);
                     break;
                 case MirrorType.Vertical:
                     ExtendCapacity(output, count);
-                    MirrorVerts(rect, output, count, false);
+                    MirrorVerts(rect, output, count, false, true);
                     break;
                 case MirrorType.Quarter:
                     ExtendCapacity(output, count * 3);
-                    MirrorVerts(rect, output, count, true);
-                    MirrorVerts(rect, output, count * 2, false);
+                    MirrorVerts(rect, output, count, true, false);
+                    MirrorVerts(rect, output, count * 2, false, false);
                     break;
             }
         }
@@ -375,21 +397,45 @@ namespace Waiting.UGUI.Effects
         /// <param name="verts"></param>
         /// <param name="count"></param>
         /// <param name="isHorizontal"></param>
-        protected void MirrorVerts(Rect rect, List<UIVertex> verts, int count, bool isHorizontal = true)
+        /// <param name="canReverse"></param>
+        protected void MirrorVerts(Rect rect, List<UIVertex> verts, int count, bool isHorizontal = true, bool canReverse = false)
         {
-            for (int i = count - 1; i >= 0; i--)
+            bool isReversedResult = canReverse && isReversed;
+
+            for (int i = 0; i < count; i++)
             {
-                UIVertex vertex = verts[i];
+                int index;
+
+                if (isReversedResult)
+                {
+                    index = i;
+                }
+                else
+                {
+                    index = (count - 1) - i;
+                }
+
+                UIVertex vertex = verts[index];
 
                 Vector3 position = vertex.position;
 
                 if (isHorizontal)
                 {
                     position.x = rect.center.x * 2 - position.x;
+
+                    if (isReversedResult)
+                    {
+                        position.y = rect.center.y * 2 - position.y;
+                    }
                 }
                 else
                 {
                     position.y = rect.center.y * 2 - position.y;
+
+                    if (isReversedResult)
+                    {
+                        position.x = rect.center.x * 2 - position.x;
+                    }
                 }
 
                 vertex.position = position;

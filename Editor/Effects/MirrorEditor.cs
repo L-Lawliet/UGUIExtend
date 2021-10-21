@@ -22,9 +22,11 @@ namespace Waiting.UGUIEditor.Effects
     public class MirrorEditor : Editor
     {
         protected SerializedProperty m_MirrorType;
+        protected SerializedProperty m_IsReversed;
 
         private GUIContent m_CorrectButtonContent;
         private GUIContent m_MirrorTypeContent;
+        private GUIContent m_IsReversedContent;
 
         protected virtual void OnDisable()
         {
@@ -37,12 +39,22 @@ namespace Waiting.UGUIEditor.Effects
 
             m_MirrorTypeContent = new GUIContent("Mirror Type");
 
+            m_IsReversedContent = new GUIContent("Is Reversed");
+
             m_MirrorType = serializedObject.FindProperty("m_MirrorType");
+            m_IsReversed = serializedObject.FindProperty("m_IsReversed");
         }
 
         public override void OnInspectorGUI()
         {
             EditorGUILayout.PropertyField(m_MirrorType, m_MirrorTypeContent);
+
+            var canReverse = CanReverse((Mirror.MirrorType)m_MirrorType.enumValueIndex);
+
+            using (new EditorGUI.DisabledGroupScope(!canReverse))
+            {
+                EditorGUILayout.PropertyField(m_IsReversed, m_IsReversedContent);
+            }
 
             if (GUILayout.Button(m_CorrectButtonContent, EditorStyles.miniButton))
             {
@@ -62,6 +74,11 @@ namespace Waiting.UGUIEditor.Effects
             }
 
             serializedObject.ApplyModifiedProperties();
+        }
+
+        protected bool CanReverse(Mirror.MirrorType type)
+        {
+            return type == Mirror.MirrorType.Horizontal || type == Mirror.MirrorType.Vertical;
         }
     }
 }
