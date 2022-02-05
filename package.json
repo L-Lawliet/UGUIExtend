@@ -1,0 +1,13 @@
+{
+  "name": "uguiextend",
+  "displayName": "UGUIExtend",
+  "version": "0.0.1",
+  "unity": "2017.1",
+  "description": "",
+  "keywords": [
+    "UGUI",
+    "Extend"
+  ],
+  "category": "UGUI",
+  "dependencies": {}
+}
